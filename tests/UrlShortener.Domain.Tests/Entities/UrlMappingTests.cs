@@ -1,15 +1,16 @@
 ﻿using UrlShortener.Domain.Entities;
+using UrlShortener.Domain.ValueObjects;
 
 namespace UrlShortener.Domain.Tests.Entities;
 
-public  class UrlMappingTests
+public class UrlMappingTests
 {
     [Fact]
     public void Create_ShouldCreateUrlMappingInstance_WhenUrlMappingIsValid()
     {
         // Arrange
-        var longUrl = "https://www.example.com/some/long/url";
-        var shortCode = "exmpl";
+        var longUrl = LongUrl.Create("https://www.example.com/some/long/url");
+        var shortCode = ShortCode.Create("exmpl");
         DateTime? expiresAt = DateTime.UtcNow.AddDays(30);
 
         // Act
@@ -21,7 +22,7 @@ public  class UrlMappingTests
         Assert.Equal(shortCode, urlMapping.ShortCode);
         Assert.Equal(expiresAt, urlMapping.ExpiresAt);
         Assert.Equal(0, urlMapping.ClickCount);
-        Assert.True((DateTime.UtcNow - urlMapping.CreatedAt).TotalSeconds < 5); // CreatedAt should be recent
+        Assert.True((DateTime.UtcNow - urlMapping.CreatedAt).TotalSeconds < 5);
     }
 }
 
