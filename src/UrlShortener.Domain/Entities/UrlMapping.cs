@@ -1,10 +1,10 @@
 ﻿using UrlShortener.Domain.ValueObjects;
+using UrlShortener.SharedKernel.Entities;
 
 namespace UrlShortener.Domain.Entities;
 
-public class UrlMapping
+public class UrlMapping : Entity<long>
 {
-    public long Id { get; private set; }
     public LongUrl LongUrl { get; private set; }
     public ShortCode ShortCode { get; private set; }
     public long ClickCount { get; private set; } = 0;
