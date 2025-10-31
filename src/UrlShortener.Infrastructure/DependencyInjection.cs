@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using UrlShortener.Application.Abstractions.Data;
 using UrlShortener.Application.Abstractions.ShortCode;
 using UrlShortener.Infrastructure.Database;
 using UrlShortener.Infrastructure.Services.CodeGeneration;
@@ -42,6 +43,9 @@ public static class DependencyInjection
                     LogLevel.Information);
             }
         });
+
+        services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<UrlShortenerDbContext>());
+
 
         return services;
     }

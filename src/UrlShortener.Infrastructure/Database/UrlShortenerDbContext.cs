@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using UrlShortener.Application.Abstractions.Data;
 using UrlShortener.Domain.Entities;
 
 namespace UrlShortener.Infrastructure.Database;
 
 public class UrlShortenerDbContext(DbContextOptions<UrlShortenerDbContext> options)
-: DbContext(options)
+: DbContext(options), IApplicationDbContext
 {
     public DbSet<UrlMapping> UrlMappings => Set<UrlMapping>();
 
