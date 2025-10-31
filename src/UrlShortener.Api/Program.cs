@@ -1,58 +1,43 @@
-using UrlShortener.Application.Abstractions.ShortCode;
-using UrlShortener.Infrastructure.Services.CodeGeneration;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Serilog;
+using UrlShortener.Api.Endpoints;
+using UrlShortener.Api.Middleware;
+using UrlShortener.Application;
+using UrlShortener.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Host.UseSerilog((context, loggerConfig) =>
+    loggerConfig.ReadFrom.Configuration(context.Configuration));
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 builder.Services.AddOpenApi();
 
-// Short code generator configuration & DI
-// Salt deve ser fornecido por Secret Manager, variável de ambiente ou cofre (Hashids:Salt)
-builder.Services.AddSingleton<IShortCodeGenerator>(sp =>
-{
-    var config = sp.GetRequiredService<IConfiguration>();
-    var salt = config["Hashids:Salt"]; // não commitado em appsettings
-    var minLen = config.GetValue<int?>("Hashids:MinHashLength") ?? 7;
-    if (string.IsNullOrWhiteSpace(salt))
-    {
-        throw new InvalidOperationException("Hashids:Salt is not configured. Set it via user-secrets, environment variables, or a secrets vault.");
-    }
-    return new HashidsShortCodeGenerator(salt, minLen);
-});
+builder.Services
+    .AddApplication()
+    .AddInfrastructure(builder.Configuration, builder.Environment.IsDevelopment());
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.MapEndpoints();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
+app.MapHealthChecks("health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+app.UseMiddleware<RequestContextLoggingMiddleware>();
+app.UseSerilogRequestLogging();
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
-app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+await app.RunAsync();

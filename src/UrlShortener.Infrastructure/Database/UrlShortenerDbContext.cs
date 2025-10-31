@@ -3,13 +3,9 @@ using UrlShortener.Domain.Entities;
 
 namespace UrlShortener.Infrastructure.Database;
 
-public class UrlShortenerDbContext : DbContext
+public class UrlShortenerDbContext(DbContextOptions<UrlShortenerDbContext> options)
+: DbContext(options)
 {
-    public UrlShortenerDbContext(DbContextOptions<UrlShortenerDbContext> options)
-        : base(options)
-    {
-    }
-
     public DbSet<UrlMapping> UrlMappings => Set<UrlMapping>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
