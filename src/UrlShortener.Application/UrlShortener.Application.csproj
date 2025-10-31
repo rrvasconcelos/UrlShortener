@@ -6,4 +6,11 @@
     <PackageReference Include="Scrutor" />
     <PackageReference Include="Serilog" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\UrlShortener.SharedKernel\UrlShortener.SharedKernel.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="UseCases\" />
+    <Folder Include="UseCases\Shorteners\" />
+  </ItemGroup>
 </Project>

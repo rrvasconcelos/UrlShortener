@@ -6,12 +6,21 @@ namespace UrlShortener.Infrastructure.Services.CodeGeneration;
 public class HashidsShortCodeGenerator : IShortCodeGenerator
 {
     private readonly Hashids _hashids;
-    private const string Salt = "sua_chave_secreta_e_longa_aqui_para_seguranca";
-    private const int MinHashLength = 7;
 
-    public HashidsShortCodeGenerator()
+    // Evite hardcode: injete o salt e o comprimento mínimo via DI/configuração
+    public HashidsShortCodeGenerator(string salt, int minHashLength = 7)
     {
-        _hashids = new Hashids(Salt, MinHashLength);
+        if (string.IsNullOrWhiteSpace(salt))
+        {
+            throw new ArgumentException("Salt must be provided and not be empty.", nameof(salt));
+        }
+
+        if (minHashLength <= 0)
+        {
+            minHashLength = 7;
+        }
+
+        _hashids = new Hashids(salt, minHashLength);
     }
 
     public string Encode(long id)

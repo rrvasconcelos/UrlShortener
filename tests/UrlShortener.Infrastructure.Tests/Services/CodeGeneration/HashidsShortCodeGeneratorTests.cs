@@ -5,5 +5,5 @@ namespace UrlShortener.Infrastructure.Tests.Services.CodeGeneration;
 
 public class HashidsShortCodeGeneratorTests : ShortCodeGeneratorContractTests
 {
-    protected override IShortCodeGenerator CreateSut() => new HashidsShortCodeGenerator();
+    protected override IShortCodeGenerator CreateSut() => new HashidsShortCodeGenerator("unit_test_salt", 7);
 }
