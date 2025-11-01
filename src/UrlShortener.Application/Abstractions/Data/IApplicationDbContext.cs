@@ -1,5 +1,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using UrlShortener.Domain.Entities;
 
 namespace UrlShortener.Application.Abstractions.Data;
@@ -7,6 +8,8 @@ namespace UrlShortener.Application.Abstractions.Data;
 public interface IApplicationDbContext
 {
     DbSet<UrlMapping> UrlMappings { get; }
+
+    DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -1,6 +1,13 @@
+using UrlShortener.Api.Middleware;
+
 namespace UrlShortener.Api.Extensions;
 
-public class MiddlewareExtensions
+public static class MiddlewareExtensions
 {
-    
+    public static IApplicationBuilder UseRequestContextLogging(this IApplicationBuilder app)
+    {
+        app.UseMiddleware<RequestContextLoggingMiddleware>();
+
+        return app;
+    }
 }

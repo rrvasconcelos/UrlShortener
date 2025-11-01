@@ -2,9 +2,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
+using UrlShortener.Application.Abstractions.Cache;
 using UrlShortener.Application.Abstractions.Data;
 using UrlShortener.Application.Abstractions.ShortCode;
 using UrlShortener.Infrastructure.Database;
+using UrlShortener.Infrastructure.Services.Cache;
 using UrlShortener.Infrastructure.Services.CodeGeneration;
 
 namespace UrlShortener.Infrastructure;
@@ -18,7 +21,7 @@ public static class DependencyInjection
     => services
         .AddDataBase(configuration, isDevelopment)
         .AddHealthChecks(configuration)
-        .AddServices();
+        .AddServices(configuration);
 
     private static IServiceCollection AddDataBase(
         this IServiceCollection services,
@@ -59,7 +62,7 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddServices(this IServiceCollection services)
+    private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<IShortCodeGenerator>(sp =>
         {
@@ -72,6 +75,19 @@ public static class DependencyInjection
             }
             return new HashidsShortCodeGenerator(salt, minLen);
         });
+
+        var redisConnectionString = configuration.GetSection("Redis:ConnectionString").Value;
+
+        if (string.IsNullOrEmpty(redisConnectionString))
+        {
+            throw new InvalidOperationException("A string de conexão do Redis não foi encontrada no appsettings.json.");
+        }
+
+        var redisConnection = ConfigurationOptions.Parse(redisConnectionString);
+
+        services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnection));
+
+        services.AddSingleton<ICacheService, RedisCacheService>();
 
         return services;
     }
