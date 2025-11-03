@@ -1,4 +1,4 @@
-namespace UrlShortener.Application.UseCases.Shorteners;
+namespace UrlShortener.Application.UseCases.Shorteners.Create;
 
 public record UrlResponse
 {
