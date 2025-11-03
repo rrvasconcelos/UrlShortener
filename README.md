@@ -23,14 +23,6 @@ Este projeto está licenciado sob a Licença MIT.
 
 <div align="center">
 
-**Construído com ❤️ por [rrvasconcelos](https://github.com/rrvasconcelos)**
-
-*Demonstrando Clean Architecture e boas práticas de desenvolvimento .NET*
-
-</div>s.io/badge/.NET-9-purple?logo=dotnet)](https://dotnet.microsoft.com/)
-[![Clean Architecture](https://img.shields.io/badge/Arquitetura-Clean-green)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-[![CQRS](https://img.shields.io/badge/Padrão-CQRS-blue)](https://docs.microsoft.com/pt-br/azure/architecture/patterns/cqrs)
-[![Redis Cache](https://img.shields.io/badge/Cache-Redis-red?logo=redis)](https://redis.io/)
 
 ## 🎯 **Sobre o Projeto**
 
