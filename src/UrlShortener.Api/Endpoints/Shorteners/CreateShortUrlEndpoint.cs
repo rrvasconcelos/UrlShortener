@@ -1,4 +1,6 @@
 using System;
+using UrlShortener.Api.Extensions;
+using UrlShortener.Api.Infrastructure;
 using UrlShortener.Application.Abstractions.Messaging;
 using UrlShortener.Application.UseCases.Common;
 using UrlShortener.Application.UseCases.Shorteners;
@@ -15,17 +17,20 @@ public class CreateShortUrlEndpoint : IEndpoint
             .Produces<long>();
 
     private static async Task<IResult> HandleAsync(
-        Request  request,
-        ICommandHandler<CreateShortUrlCommand, UrlResponse>  handler, 
-        CancellationToken cancellationToken = default )
+        Request request,
+        ICommandHandler<CreateShortUrlCommand, UrlResponse> handler, 
+        CancellationToken cancellationToken = default)
     {
         var command = new CreateShortUrlCommand
         {
             LongUrl = request.LongUrl
         };
         
-        var response = await handler.Handle(command, cancellationToken);
+        var result = await handler.Handle(command, cancellationToken);
         
-        return Results.Ok(response);
+        return result.Match(
+            success => Results.Ok(success),
+            CustomResults.Problem
+        );
     }
 }
