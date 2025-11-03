@@ -1,107 +1,199 @@
-# UrlShortener
+# 🚀 Encurtador de URLs
 
-Pequeno encurtador de URLs em .NET, com separação por camadas (Domain, Application, Infrastructure e API) e gerador de short codes baseado em Hashids.
+> **Serviço de encurtamento de URLs construído com .NET 9, implementando Clean Architecture, CQRS e cache com Redis.**
 
-## Visão geral
+[![.NET 9](htt---
 
-- Plataforma: .NET 9
-- Testes: xUnit
-- Persistência: Entity Framework Core (projeto Infrastructure já preparado)
-- Short code: Hashids.net via `IShortCodeGenerator` com implementação `HashidsShortCodeGenerator`
+## 🚧 **Status do Projeto**
 
-## Estrutura da solução
+⚠️ **Projeto em Desenvolvimento** - Este projeto ainda não está finalizado e está aberto para evoluções e melhorias.
 
-- `src/UrlShortener.Api` — API ASP.NET Core (DI, configuração, endpoints de exemplo e OpenAPI em Desenvolvimento)
-- `src/UrlShortener.Application` — Abstrações e orquestração de casos de uso (ex.: `IShortCodeGenerator`)
-- `src/UrlShortener.Domain` — Entidades e Value Objects (ex.: `UrlMapping`, `LongUrl`, `ShortCode`)
-- `src/UrlShortener.Infrastructure` — Implementações técnicas (EF Core, Hashids, etc.)
-- `tests/UrlShortener.Domain.Tests` — Testes de domínio
-- `tests/UrlShortener.Infrastructure.Tests` — Testes de infraestrutura (inclui “testes de contrato” para `IShortCodeGenerator`)
+### **Como Contribuir**
+- 🐛 **Encontrou um bug?** Abra uma [issue](https://github.com/rrvasconcelos/UrlShortener/issues)
+- 💡 **Tem uma ideia?** Compartilhe via [issues](https://github.com/rrvasconcelos/UrlShortener/issues)  
+- 🔧 **Quer contribuir?** Pull requests são bem-vindos!
 
-## Configuração do Hashids (segura)
+---
 
-A implementação `HashidsShortCodeGenerator` exige dois parâmetros:
+## 📝 **Licença**
 
-- `Hashids:Salt` — segredo obrigatório (NÃO comitar em repositório)
-- `Hashids:MinHashLength` — comprimento mínimo do código (default 7)
+Este projeto está licenciado sob a Licença MIT.
 
-No `Program.cs` da API o registro é feito assim (via DI):
+---
 
-- Lê `Hashids:Salt` de configuração (User Secrets, variável de ambiente ou cofre) e falha com mensagem clara se não configurado
-- Lê `Hashids:MinHashLength` (opcional; default 7)
+<div align="center">
 
-Os arquivos `appsettings.json` e `appsettings.Development.json` contêm apenas `Hashids:MinHashLength` por padrão; o `Salt` deve vir de um provedor seguro.
+**Construído com ❤️ por [rrvasconcelos](https://github.com/rrvasconcelos)**
 
-### Desenvolvimento (User Secrets)
+*Demonstrando Clean Architecture e boas práticas de desenvolvimento .NET*
 
-No Windows PowerShell, na raiz do repositório:
+</div>s.io/badge/.NET-9-purple?logo=dotnet)](https://dotnet.microsoft.com/)
+[![Clean Architecture](https://img.shields.io/badge/Arquitetura-Clean-green)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+[![CQRS](https://img.shields.io/badge/Padrão-CQRS-blue)](https://docs.microsoft.com/pt-br/azure/architecture/patterns/cqrs)
+[![Redis Cache](https://img.shields.io/badge/Cache-Redis-red?logo=redis)](https://redis.io/)
 
-```powershell
-# Inicializar User Secrets (já pode estar configurado)
-dotnet user-secrets init --project .\src\UrlShortener.Api\UrlShortener.Api.csproj
+## 🎯 **Sobre o Projeto**
 
-# Definir o Salt de forma segura
-# Use um valor longo e aleatório
-dotnet user-secrets set "Hashids:Salt" "<seu-salt-bem-aleatorio>" --project .\src\UrlShortener.Api\UrlShortener.Api.csproj
+Um encurtador de URLs simples e funcional que demonstra **boas práticas de desenvolvimento .NET** com arquitetura limpa, separação de responsabilidades e testes abrangentes.
+
+### ✨ **O que foi implementado**
+
+- 🏗️ **Clean Architecture** com 4 camadas bem definidas
+- ⚡ **Padrão CQRS** com Commands e Queries separados
+- 🗄️ **Cache Redis** para otimizar consultas
+- 🔐 **Hashids** para gerar códigos curtos seguros
+- ✅ **51 testes unitários** com boa cobertura de código
+- � **Logging estruturado** com Serilog
+
+---
+
+## 🏛️ **Arquitetura**
+
+### **Clean Architecture - 4 Camadas**
+
+```
+┌─────────────────────────────────────┐
+│            Api (Endpoints)          │ ← Controllers REST, Dependency Injection
+├─────────────────────────────────────┤
+│             Application             │ ← Handlers CQRS, Use Cases  
+├─────────────────────────────────────┤
+│              Domain                 │ ← Entities, Value Objects, Business Rules
+├─────────────────────────────────────┤
+│           Infrastructure            │ ← EF Core, Redis, External Services
+└─────────────────────────────────────┘
 ```
 
-### Variáveis de ambiente (produção/CI)
+### **CQRS Implementation**
 
-```powershell
-# Em Windows PowerShell
-$env:HASHIDS__SALT = "<valor>"
-$env:HASHIDS__MINHASHLENGTH = "7"
+- **CreateShortUrlCommand**: Cria URL curta com cache
+- **GetUrlQuery**: Busca URL original com cache-first strategy
+- **Result Pattern**: Tratamento de erros sem exceptions
+
+---
+
+## 🛠️ **Stack Tecnológico**
+
+| Tecnologia | Uso |
+|-----------|-----|
+| **.NET 9** | Runtime e framework base |
+| **ASP.NET Core** | Web API com minimal APIs |
+| **PostgreSQL** | Banco de dados principal |
+| **Entity Framework Core** | ORM para acesso aos dados |
+| **Redis** | Cache para otimização |
+| **Hashids.net** | Geração de códigos curtos |
+| **xUnit** | Framework de testes |
+| **NSubstitute** | Mocking para testes |
+| **FluentAssertions** | Assertions mais legíveis |
+| **Serilog** | Logging estruturado |
+
+---
+
+## �️ **Cache Strategy**
+
+### **Redis Cache Implementation**
+
+- **Cache Keys**: 
+  - `long:{url}` → Armazena código curto
+  - `short:{code}` → Armazena URL original
+- **TTL**: 1 ano (URLs são imutáveis)
+- **Fallback**: Funciona sem cache em caso de falha
+
+---
+
+## ✅ **Testes**
+
+### **Cobertura de Testes - 51 testes total**
+
+```
+📊 Testes por Camada:
+├── Domain (25 testes) - Value Objects, Entities, Business Rules
+├── Application (12 testes) - CQRS Handlers, Use Cases  
+└── Infrastructure (14 testes) - Services, Repositories
 ```
 
-> Observação: Em ASP.NET Core, chaves de configuração aninhadas usam `__` (duplo underscore) em variáveis de ambiente.
+### **Frameworks utilizados**
+- **xUnit**: Framework de testes principal
+- **NSubstitute**: Mocks e stubs
+- **FluentAssertions**: Assertions expressivas
+- **Test Coverage**: Relatórios de cobertura
 
-## Como executar
+---
 
-```powershell
-# Restaurar e compilar
-dotnet build .\UrlShortener.sln
+## 🚀 **Como Executar**
 
-# Executar a API (certifique-se de ter configurado o Hashids:Salt)
-dotnet run --project .\src\UrlShortener.Api\UrlShortener.Api.csproj
+### **Pré-requisitos**
+- .NET 9 SDK
+- Docker (para PostgreSQL e Redis)
+
+### **1. Clone e configure**
+
+```bash
+git clone https://github.com/rrvasconcelos/UrlShortener.git
+cd UrlShortener
+
+# Configure o salt do Hashids (obrigatório)
+dotnet user-secrets init --project src/UrlShortener.Api
+dotnet user-secrets set "Hashids:Salt" "seu-salt-aqui" --project src/UrlShortener.Api
 ```
 
-- OpenAPI está habilitado em Ambiente de Desenvolvimento (template do .NET 9). A aplicação exibirá as rotas de documentação no console.
+### **2. Suba a infraestrutura**
 
-## Testes
+```bash
+# PostgreSQL + Redis
+docker-compose up -d postgres redis
+```
 
-```powershell
+### **3. Execute a aplicação**
+
+```bash
+dotnet run --project src/UrlShortener.Api
+```
+
+### **4. Teste a API**
+
+```bash
+# Criar URL curta
+curl -X POST http://localhost:5000 \
+  -H "Content-Type: application/json" \
+  -d '{"longUrl": "https://github.com/rrvasconcelos"}'
+
+# Resposta: {"shortCode": "abc123", "longUrl": "https://github.com/rrvasconcelos"}
+
+# Usar URL curta
+curl -I http://localhost:5000/abc123
+# Retorna: 302 Redirect para URL original
+```
+
+---
+
+## 🧪 **Executando Testes**
+
+```bash
+# Todos os testes
 dotnet test
+
+# Com cobertura de código
+dotnet test --collect:"XPlat Code Coverage"
+
+# Projeto específico
+dotnet test tests/UrlShortener.Application.Tests/
+
+# Com output detalhado
+dotnet test --logger "console;verbosity=detailed"
 ```
 
-Tipos de testes incluídos:
+---
 
-- Domain: valida entidades e value objects (ex.: `UrlMapping`)
-- Infrastructure: testes de contrato para `IShortCodeGenerator` e a implementação `HashidsShortCodeGenerator`
-  - O “contrato” está em `tests/UrlShortener.Infrastructure.Tests/Services/CodeGeneration/ShortCodeGeneratorContractTests.cs`
-  - A suíte específica da implementação está em `tests/UrlShortener.Infrastructure.Tests/Services/CodeGeneration/HashidsShortCodeGeneratorTests.cs`
+##  **Licença**
 
-### Adicionando outra implementação de short code
+Este projeto está licenciado sob a Licença MIT.
 
-1. Implemente `IShortCodeGenerator` em `Infrastructure` (ou outro projeto)
-2. Crie uma classe de teste no projeto de testes que herde do contrato e sobrescreva `CreateSut()` retornando a sua implementação
+---
 
-Exemplo:
+<div align="center">
 
-```csharp
-public class MyShortCodeGeneratorTests : ShortCodeGeneratorContractTests
-{
-		protected override IShortCodeGenerator CreateSut() => new MyShortCodeGenerator(/* params */);
-}
-```
+**Construído por [rrvasconcelos](https://github.com/rrvasconcelos)**
 
-## Solução de problemas
+*Demonstrando Clean Architecture e boas práticas de desenvolvimento .NET*
 
-- Erro ao subir a API: `Hashids:Salt is not configured`
-  - Configure via User Secrets (dev) ou variável de ambiente/cofre (produção)
-- Teste falhando em `Decode(null)`
-  - O contrato exige lançar alguma exceção para `null` (pode ser `ArgumentNullException` ou outra propagada pela lib Hashids). Se preferir padronizar, valide `null/whitespace` antes de chamar a lib e lance `InvalidShortCodeException`.
-
-## Boas práticas de segurança
-
-- Nunca comite segredos (como o `Hashids:Salt`) no repositório
-- Prefira User Secrets em desenvolvimento, variáveis de ambiente ou cofres (Azure Key Vault, etc.) em produção
+</div>
