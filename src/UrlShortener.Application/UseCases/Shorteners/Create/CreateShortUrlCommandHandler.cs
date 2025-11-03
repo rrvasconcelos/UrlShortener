@@ -4,6 +4,7 @@ using UrlShortener.Application.Abstractions.Cache;
 using UrlShortener.Application.Abstractions.Data;
 using UrlShortener.Application.Abstractions.Messaging;
 using UrlShortener.Application.Abstractions.ShortCode;
+using UrlShortener.Application.UseCases.Common;
 using UrlShortener.Domain.Entities;
 using UrlShortener.Domain.Errors;
 using UrlShortener.Domain.Exceptions;
@@ -11,7 +12,7 @@ using UrlShortener.Domain.ValueObjects;
 using UrlShortener.SharedKernel.Errors;
 using UrlShortener.SharedKernel.Results;
 
-namespace UrlShortener.Application.UseCases.Shorteners;
+namespace UrlShortener.Application.UseCases.Shorteners.Create;
 
 public class CreateShortUrlCommandHandler(
     IShortCodeGenerator codeGenerator,

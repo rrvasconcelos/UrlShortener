@@ -12,7 +12,8 @@ public static class Endpoint
 
         endpoints.MapGroup("v1/shorten")
             .WithTags("Restaurants")
-            .MapEndpoint<CreateShortUrlEndpoint>();
+            .MapEndpoint<CreateShortUrlEndpoint>()
+            .MapEndpoint<GetByShortCodeEndpoint>();
     }
 
     private static IEndpointRouteBuilder MapEndpoint<TEndpoint>(this IEndpointRouteBuilder app)

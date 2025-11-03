@@ -1,6 +1,8 @@
 using System;
 using UrlShortener.Application.Abstractions.Messaging;
+using UrlShortener.Application.UseCases.Common;
 using UrlShortener.Application.UseCases.Shorteners;
+using UrlShortener.Application.UseCases.Shorteners.Create;
 
 namespace UrlShortener.Api.Endpoints.Shorteners;
 
