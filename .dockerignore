@@ -1,0 +1,46 @@
+# .NET
+**/bin/
+**/obj/
+**/out/
+*.user
+*.suo
+*.cache
+*.dll
+*.exe
+*.pdb
+*.dll.config
+*.cache
+
+# Node
+node_modules/
+npm-debug.log
+dist/
+.angular/
+
+# IDEs
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker
+**/.dockerignore
+**/docker-compose*
+**/Dockerfile*
+
+# Tests
+**/TestResults/
+**/*.trx
+
+# Others
+**/.env
+**/*.md

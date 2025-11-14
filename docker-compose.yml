@@ -1,14 +1,70 @@
-version: '3.8'
-
 services:
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      - POSTGRES_DB=urlshortener_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - urlshortener-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: src/UrlShortener.Api/Dockerfile
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Database=Host=postgres;Port=5432;Database=urlshortener_db;Username=postgres;Password=postgres;Include Error Detail=true
+      - Redis__ConnectionString=redis:6379
+      - Hashids__Salt=${HASHIDS_SALT}
+      - Hashids__MinHashLength=7
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - urlshortener-network
+
+  frontend:
+    build:
+      context: ./frontend/UrlShortener
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - urlshortener-network
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - urlshortener-network
+
   redis:
     image: redis:7-alpine
     restart: always
-    ports:
-      - "6379:6379"
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
+    networks:
+      - urlshortener-network
+
+networks:
+  urlshortener-network:
+    driver: bridge
 
 volumes:
+  postgres_data:
   redis_data:

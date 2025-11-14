@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://localhost:7076'
+  apiUrl: '' // URL relativa - usa o proxy Nginx
 };

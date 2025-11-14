@@ -1,12 +1,13 @@
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using UrlShortener.Api;
 using UrlShortener.Api.Endpoints;
 using UrlShortener.Api.Extensions;
-using UrlShortener.Api.Middleware;
 using UrlShortener.Application;
 using UrlShortener.Infrastructure;
+using UrlShortener.Infrastructure.Database;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +23,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocal4200", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins("http://localhost:4200", "http://localhost", "http://localhost:80")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -30,6 +31,13 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Apply migrations automatically
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<UrlShortenerDbContext>();
+    dbContext.Database.Migrate();
+}
 
 // Register middleware that should run before endpoints
 if (app.Environment.IsDevelopment())

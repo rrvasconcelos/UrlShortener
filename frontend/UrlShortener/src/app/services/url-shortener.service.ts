@@ -9,13 +9,13 @@ import { CreateShortUrlRequest, CreateShortUrlResponse } from '../models/url-res
 })
 export class UrlShortenerService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = environment.apiUrl || 'https://localhost:7000';
+  private readonly baseUrl = environment.apiUrl || '';
 
   createShortUrl(request: CreateShortUrlRequest): Observable<CreateShortUrlResponse> {
-    return this.http.post<CreateShortUrlResponse>(`${this.baseUrl}/v1/shorten`, request);
+    return this.http.post<CreateShortUrlResponse>(`${this.baseUrl}/api/shorten`, request);
   }
 
   getFullUrl(shortCode: string): string {
-    return `${this.baseUrl}/v1/shorten/${shortCode}`;
+    return `${window.location.origin}/${shortCode}`;
   }
 }
