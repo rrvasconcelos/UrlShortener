@@ -5,7 +5,7 @@ namespace UrlShortener.Domain.Entities;
 
 public class UrlMapping : Entity<long>
 {
-    public LongUrl LongUrl { get; private set; }
+    public LongUrl LongUrl { get; private set; } = default!;
     public ShortCode? ShortCode { get; private set; }
     public long ClickCount { get; private set; } = 0;
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;

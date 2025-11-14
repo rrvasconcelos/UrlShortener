@@ -42,8 +42,9 @@ using (var scope = app.Services.CreateScope())
 // Register middleware that should run before endpoints
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // Swagger temporariamente desabilitado por problema de compatibilidade com .NET 10
+    // app.UseSwagger();
+    // app.UseSwaggerUI();
 }
 
 // Enable CORS using the defined policy

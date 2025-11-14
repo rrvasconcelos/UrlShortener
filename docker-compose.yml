@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     restart: always
     environment:
-      - POSTGRES_DB=urlshortener_db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
       - "5434:5432"
     volumes:
@@ -13,29 +13,39 @@ services:
     networks:
       - urlshortener-network
 
-  backend:
-    build:
-      context: .
-      dockerfile: src/UrlShortener.Api/Dockerfile
-    restart: always
+  backend-dev:
+    image: mcr.microsoft.com/dotnet/sdk:9.0
+    working_dir: /app
+    command: sh -c "dotnet restore && dotnet watch run --project src/UrlShortener.Api"
+    ports:
+      - "5000:8080"
+    volumes:
+      - .:/app
+      - ~/.nuget/packages:/root/.nuget/packages:ro
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__Database=Host=postgres;Port=5432;Database=urlshortener_db;Username=postgres;Password=postgres;Include Error Detail=true
-      - Redis__ConnectionString=redis:6379
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_URLS=${ASPNETCORE_URLS}
+      - ConnectionStrings__Database=${DATABASE_CONNECTION_STRING}
+      - Redis__ConnectionString=${REDIS_CONNECTION_STRING}
       - Hashids__Salt=${HASHIDS_SALT}
-      - Hashids__MinHashLength=7
+      - Hashids__MinHashLength=${HASHIDS_MIN_LENGTH}
+      - DOTNET_USE_POLLING_FILE_WATCHER=true
     depends_on:
       - postgres
       - redis
     networks:
       - urlshortener-network
 
-  frontend:
-    build:
-      context: ./frontend/UrlShortener
-      dockerfile: Dockerfile
-    restart: always
+  frontend-dev:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run start"
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend/UrlShortener:/app
+    environment:
+      - CHOKIDAR_USEPOLLING=true
     networks:
       - urlshortener-network
 
@@ -43,12 +53,14 @@ services:
     image: nginx:alpine
     restart: always
     ports:
-      - "80:80"
+      - "8080:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
-      - backend
-      - frontend
+      - backend-dev
+      - frontend-dev
     networks:
       - urlshortener-network
 
