@@ -31,7 +31,7 @@ public class UrlMappingConfiguration : IEntityTypeConfiguration<UrlMapping>
         builder
             .Property(u => u.ShortCode)
             .HasConversion(
-                v => v.Value,             // to provider (string)
+                v => v!.Value,             // to provider (string)
                 v => ShortCode.Create(v)  // from provider
             )
             .HasMaxLength(7)

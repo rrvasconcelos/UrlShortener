@@ -4,7 +4,7 @@ namespace UrlShortener.SharedKernel.Entities;
 
 public abstract class Entity<TId>
 {
-    public TId Id { get; protected set; }
+    public TId Id { get; protected set; } = default!;
     public List<IDomainEvent> DomainEvents => [.. _domainEvents];
 
     private readonly List<IDomainEvent> _domainEvents = [];

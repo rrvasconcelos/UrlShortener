@@ -1,0 +1,29 @@
+.main {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  position: relative;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease;
+}
+
+// Textura sutil que se adapta ao tema
+.main::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.6;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+// No dark mode, reduzir ainda mais a opacidade para manter elegância
+.dark-theme .main::before {
+  opacity: 0.3;
+}
