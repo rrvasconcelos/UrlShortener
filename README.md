@@ -298,7 +298,7 @@ MIT License - veja [LICENSE](LICENSE) para detalhes.
 
 *Demonstração de Clean Architecture, Segurança e Performance em .NET 9*
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue)](https://linkedin.com/in/rrvasconcelos)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue)](https://linkedin.com/in/rr-vasconcelos)
 [![GitHub](https://img.shields.io/badge/GitHub-Follow-black)](https://github.com/rrvasconcelos)
 
 </div>
