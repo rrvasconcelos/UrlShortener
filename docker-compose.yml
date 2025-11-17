@@ -16,7 +16,7 @@ services:
   backend-dev:
     image: mcr.microsoft.com/dotnet/sdk:9.0
     working_dir: /app
-    command: sh -c "dotnet restore && dotnet watch run --project src/UrlShortener.Api"
+    command: sh -c "dotnet restore && dotnet watch run --project src/UrlShortener.Api --no-launch-profile"
     ports:
       - "5000:8080"
     volumes:
@@ -24,7 +24,7 @@ services:
       - ~/.nuget/packages:/root/.nuget/packages:ro
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-      - ASPNETCORE_URLS=${ASPNETCORE_URLS}
+      - ASPNETCORE_URLS=http://*:8080
       - ConnectionStrings__Database=${DATABASE_CONNECTION_STRING}
       - Redis__ConnectionString=${REDIS_CONNECTION_STRING}
       - Hashids__Salt=${HASHIDS_SALT}

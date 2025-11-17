@@ -275,7 +275,7 @@ export class UrlShortenerComponent {
 
     const longUrl = this.urlForm.get('longUrl')?.value;
 
-    this.urlService.createShortUrl({ longUrl }).subscribe({
+    this.urlService.createShortUrl({ LongUrl: longUrl }).subscribe({
       next: (response: CreateShortUrlResponse) => {
         const fullShortUrl = this.urlService.getFullUrl(response.shortCode);
         this.shortenedUrl.set(fullShortUrl);

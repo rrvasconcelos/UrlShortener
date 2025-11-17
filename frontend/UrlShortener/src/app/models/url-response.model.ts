@@ -4,7 +4,7 @@ export interface UrlResponse {
 }
 
 export interface CreateShortUrlRequest {
-  longUrl: string;
+  LongUrl: string;
 }
 
 export interface CreateShortUrlResponse extends UrlResponse {
