@@ -1,12 +1,19 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using UrlShortener.Application.Abstractions.Cache;
 using UrlShortener.Application.Abstractions.Data;
+using UrlShortener.Application.Abstractions.IdGeneration;
 using UrlShortener.Application.Abstractions.ShortCode;
 using UrlShortener.Infrastructure.Database;
+using UrlShortener.Infrastructure.Identity;
+using UrlShortener.Infrastructure.Services.Auth;
 using UrlShortener.Infrastructure.Services.Cache;
 using UrlShortener.Infrastructure.Services.CodeGeneration;
 
@@ -20,6 +27,8 @@ public static class DependencyInjection
         bool isDevelopment = false)
     => services
         .AddDataBase(configuration, isDevelopment)
+        .AddIdentityServices()
+        .AddAuthServices(configuration)
         .AddHealthChecks(configuration)
         .AddServices(configuration);
 
@@ -49,6 +58,53 @@ public static class DependencyInjection
 
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<UrlShortenerDbContext>());
 
+        return services;
+    }
+
+    private static IServiceCollection AddIdentityServices(this IServiceCollection services)
+    {
+        services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+        {
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = 8;
+            options.User.RequireUniqueEmail = true;
+        })
+        .AddEntityFrameworkStores<UrlShortenerDbContext>()
+        .AddDefaultTokenProviders();
+
+        return services;
+    }
+
+    private static IServiceCollection AddAuthServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+
+        var jwtSettings = configuration.GetSection("JwtSettings").Get<JwtSettings>() ?? new JwtSettings();
+
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtSettings.Issuer,
+                ValidAudience = jwtSettings.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
+            };
+        });
+
+        services.AddSingleton<IJwtTokenService, JwtTokenService>();
 
         return services;
     }
@@ -76,6 +132,10 @@ public static class DependencyInjection
             return new HashidsShortCodeGenerator(salt, minLen);
         });
 
+        services.Configure<SnowflakeSettings>(configuration.GetSection("SnowflakeSettings"));
+        services.AddSingleton<ISnowflakeIdGenerator, SnowflakeIdGenerator>();
+        services.AddSingleton<IBase62Encoder, Base62Encoder>();
+
         var redisConnectionString = configuration.GetSection("Redis:ConnectionString").Value;
 
         if (string.IsNullOrEmpty(redisConnectionString))
@@ -91,5 +151,4 @@ public static class DependencyInjection
 
         return services;
     }
-
 }

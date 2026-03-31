@@ -22,4 +22,9 @@ public class RedisCacheService(IConnectionMultiplexer connectionMultiplexer) : I
     {
         return await _database.KeyExistsAsync(key);
     }
+
+    public async Task RemoveAsync(string key)
+    {
+        await _database.KeyDeleteAsync(key);
+    }
 }

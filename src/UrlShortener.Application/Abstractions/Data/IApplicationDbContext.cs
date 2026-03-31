@@ -8,6 +8,7 @@ namespace UrlShortener.Application.Abstractions.Data;
 public interface IApplicationDbContext
 {
     DbSet<UrlMapping> UrlMappings { get; }
+    DbSet<UrlClick> UrlClicks { get; }
 
     DatabaseFacade Database { get; }
 

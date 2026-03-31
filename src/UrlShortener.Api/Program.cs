@@ -39,15 +39,12 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
 }
 
-// Register middleware that should run before endpoints
 if (app.Environment.IsDevelopment())
 {
-    // Swagger temporariamente desabilitado por problema de compatibilidade com .NET 10
-    // app.UseSwagger();
-    // app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-// Enable CORS using the defined policy
 app.UseCors("AllowLocal4200");
 
 app.MapHealthChecks("health", new HealthCheckOptions
@@ -59,8 +56,10 @@ app.UseRequestContextLogging();
 app.UseSerilogRequestLogging();
 app.UseExceptionHandler();
 app.UseHttpsRedirection();
+app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
 
-// Map application endpoints after middleware registration so CORS applies to them
 app.MapEndpoints();
 
 await app.RunAsync();

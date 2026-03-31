@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using UrlShortener.Application.Abstractions.Cache;
 using UrlShortener.Application.Abstractions.Data;
-using UrlShortener.Application.Abstractions.ShortCode;
+using UrlShortener.Application.Abstractions.IdGeneration;
 using UrlShortener.Application.UseCases.Common;
 using UrlShortener.Application.UseCases.Shorteners.GetByShortCode;
 using UrlShortener.Domain.Entities;
@@ -18,7 +18,7 @@ public class GetUrlQueryHandlerTests
     private readonly IApplicationDbContext _dbContext;
     private readonly ILogger<GetUrlQueryHandler> _logger;
     private readonly ICacheService _cacheService;
-    private readonly IShortCodeGenerator _codeGenerator;
+    private readonly IBase62Encoder _base62Encoder;
     private readonly GetUrlQueryHandler _handler;
 
     public GetUrlQueryHandlerTests()
@@ -26,9 +26,9 @@ public class GetUrlQueryHandlerTests
         _dbContext = Substitute.For<IApplicationDbContext>();
         _logger = Substitute.For<ILogger<GetUrlQueryHandler>>();
         _cacheService = Substitute.For<ICacheService>();
-        _codeGenerator = Substitute.For<IShortCodeGenerator>();
-        
-        _handler = new GetUrlQueryHandler(_dbContext, _logger, _cacheService, _codeGenerator);
+        _base62Encoder = Substitute.For<IBase62Encoder>();
+
+        _handler = new GetUrlQueryHandler(_dbContext, _logger, _cacheService, _base62Encoder);
     }
 
     [Fact]
@@ -50,9 +50,9 @@ public class GetUrlQueryHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.ShortCode.Should().Be(shortCode);
         result.Value.LongUrl.Should().Be(expectedLongUrl);
-        
+
         await _cacheService.Received(1).GetStringAsync($"short:{shortCode}");
-        _codeGenerator.DidNotReceive().Decode(Arg.Any<string>());
+        _base62Encoder.DidNotReceive().Decode(Arg.Any<string>());
     }
 
     [Fact]
@@ -66,9 +66,9 @@ public class GetUrlQueryHandlerTests
             .GetStringAsync($"short:{shortCode}")
             .Returns((string?)null);
 
-        _codeGenerator
+        _base62Encoder
             .Decode(shortCode)
-            .Returns(0); // Invalid ID
+            .Returns(0L); // Invalid ID
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -77,8 +77,8 @@ public class GetUrlQueryHandlerTests
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("UrlShortCode.NotFound");
         result.Error.Description.Should().Be("URL not found");
-        
-        _codeGenerator.Received(1).Decode(shortCode);
+
+        _base62Encoder.Received(1).Decode(shortCode);
     }
 
     [Fact]

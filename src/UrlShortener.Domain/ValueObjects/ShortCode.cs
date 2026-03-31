@@ -29,6 +29,6 @@ public partial record ShortCode : ValueObject
     }
 
 
-    [GeneratedRegex("^[A-Za-z0-9]{1,7}$")]
+    [GeneratedRegex("^[A-Za-z0-9]{1,12}$")]
     private static partial Regex MyRegex();
 }

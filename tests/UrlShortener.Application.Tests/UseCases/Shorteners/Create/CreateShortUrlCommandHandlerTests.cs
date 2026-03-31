@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using UrlShortener.Application.Abstractions.Cache;
 using UrlShortener.Application.Abstractions.Data;
-using UrlShortener.Application.Abstractions.ShortCode;
+using UrlShortener.Application.Abstractions.IdGeneration;
 using UrlShortener.Application.UseCases.Shorteners.Create;
 using UrlShortener.Domain.Exceptions;
 using UrlShortener.Domain.ValueObjects;
@@ -12,7 +12,8 @@ namespace UrlShortener.Application.Tests.UseCases.Shorteners.Create;
 
 public class CreateShortUrlCommandHandlerTests
 {
-    private readonly IShortCodeGenerator _codeGenerator;
+    private readonly ISnowflakeIdGenerator _idGenerator;
+    private readonly IBase62Encoder _base62Encoder;
     private readonly IApplicationDbContext _dbContext;
     private readonly ICacheService _cacheService;
     private readonly ILogger<CreateShortUrlCommandHandler> _logger;
@@ -20,11 +21,12 @@ public class CreateShortUrlCommandHandlerTests
 
     public CreateShortUrlCommandHandlerTests()
     {
-        _codeGenerator = Substitute.For<IShortCodeGenerator>();
+        _idGenerator = Substitute.For<ISnowflakeIdGenerator>();
+        _base62Encoder = Substitute.For<IBase62Encoder>();
         _dbContext = Substitute.For<IApplicationDbContext>();
         _cacheService = Substitute.For<ICacheService>();
         _logger = Substitute.For<ILogger<CreateShortUrlCommandHandler>>();
-        _handler = new CreateShortUrlCommandHandler(_codeGenerator, _dbContext, _cacheService, _logger);
+        _handler = new CreateShortUrlCommandHandler(_idGenerator, _base62Encoder, _dbContext, _cacheService, _logger);
     }
 
     [Fact]
@@ -33,7 +35,7 @@ public class CreateShortUrlCommandHandlerTests
         // Arrange
         var command = new CreateShortUrlCommand { LongUrl = new Uri("https://example.com") };
         var expectedShortCode = "abc123";
-        
+
         _cacheService.GetStringAsync("long:https://example.com/")
             .Returns(expectedShortCode);
 
@@ -43,7 +45,7 @@ public class CreateShortUrlCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.ShortCode.Should().Be(expectedShortCode);
-        
+
         await _cacheService.Received(1).GetStringAsync("long:https://example.com/");
     }
 
@@ -63,7 +65,7 @@ public class CreateShortUrlCommandHandlerTests
     {
         // Arrange
         var command = new CreateShortUrlCommand { LongUrl = new Uri(url) };
-        
+
         _cacheService.GetStringAsync(Arg.Any<string>())
             .Returns("cached123");
 
@@ -81,7 +83,7 @@ public class CreateShortUrlCommandHandlerTests
         // Arrange
         var command = new CreateShortUrlCommand { LongUrl = new Uri("https://example.com/path") };
         var expectedCacheKey = "long:https://example.com/path";
-        
+
         _cacheService.GetStringAsync(expectedCacheKey)
             .Returns("cached123");
 
