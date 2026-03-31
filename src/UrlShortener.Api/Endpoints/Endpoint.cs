@@ -12,6 +12,7 @@ public static class Endpoint
 
         endpoints.MapGroup("v1/shorten")
             .WithTags("Shorteners")
+            .RequireRateLimiting("anonymous")
             .MapEndpoint<CreateShortUrlEndpoint>()
             .MapEndpoint<GetByShortCodeEndpoint>()
             .MapEndpoint<DeleteUrlEndpoint>();

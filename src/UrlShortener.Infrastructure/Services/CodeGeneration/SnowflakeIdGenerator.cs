@@ -6,6 +6,13 @@ namespace UrlShortener.Infrastructure.Services.CodeGeneration;
 public class SnowflakeSettings
 {
     public int MachineId { get; set; } = 1;
+
+    /// <summary>
+    /// The epoch used as the timestamp origin for ID generation.
+    /// IMPORTANT: This value must remain fixed once IDs start being generated,
+    /// as changing it would break decoding of existing IDs.
+    /// Override via SnowflakeSettings:Epoch in configuration or environment variables.
+    /// </summary>
     public DateTime Epoch { get; set; } = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 }
 
