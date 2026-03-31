@@ -34,7 +34,7 @@ public class UrlMappingConfiguration : IEntityTypeConfiguration<UrlMapping>
                 v => v!.Value,             // to provider (string)
                 v => ShortCode.Create(v)  // from provider
             )
-            .HasMaxLength(7)
+            .HasMaxLength(12)
             .HasColumnName("ShortCode");
 
         // 3. Índice Único para ShortCode

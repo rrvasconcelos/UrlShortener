@@ -40,6 +40,7 @@ public class TestApplicationDbContext : DbContext, IApplicationDbContext
     }
 
     public DbSet<UrlShortener.Domain.Entities.UrlMapping> UrlMappings { get; set; } = null!;
+    public DbSet<UrlShortener.Domain.Entities.UrlClick> UrlClicks { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {

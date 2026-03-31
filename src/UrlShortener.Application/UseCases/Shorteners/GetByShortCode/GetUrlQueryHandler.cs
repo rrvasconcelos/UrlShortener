@@ -2,8 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using UrlShortener.Application.Abstractions.Cache;
 using UrlShortener.Application.Abstractions.Data;
+using UrlShortener.Application.Abstractions.IdGeneration;
 using UrlShortener.Application.Abstractions.Messaging;
-using UrlShortener.Application.Abstractions.ShortCode;
 using UrlShortener.Application.UseCases.Common;
 using UrlShortener.Domain.ValueObjects;
 using UrlShortener.SharedKernel.Errors;
@@ -15,23 +15,19 @@ public class GetUrlQueryHandler(
     IApplicationDbContext context,
     ILogger<GetUrlQueryHandler> logger,
     ICacheService cacheService,
-    IShortCodeGenerator codeGenerator)
+    IBase62Encoder base62Encoder)
     : IQueryHandler<GetUrlQuery, UrlResponse>
 {
     private const int CacheExpirationDays = 30;
-    
+
     public async Task<Result<UrlResponse>> Handle(GetUrlQuery query, CancellationToken cancellationToken)
     {
         var shortCode = ShortCode.Create(query.ShortCode);
-        
-        // Verifica cache primeiro
+
         var cacheResult = await TryGetFromCacheAsync(shortCode);
         if (cacheResult is not null)
-        {
             return cacheResult;
-        }
 
-        // Verifica banco de dados
         return await GetFromDatabaseAsync(shortCode, cancellationToken);
     }
 
@@ -46,31 +42,39 @@ public class GetUrlQueryHandler(
                 return null;
 
             logger.LogInformation("Long URL for short code: {ShortCode} found in cache", shortCode.Value);
-            
-            return Result.Success(new UrlResponse 
-            { 
+
+            return Result.Success(new UrlResponse
+            {
                 ShortCode = shortCode.Value,
-                LongUrl = cachedLongUrl 
+                LongUrl = cachedLongUrl
             });
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to retrieve from cache for short code: {ShortCode}", shortCode.Value);
-            return null; // Continue sem cache em caso de erro
+            return null;
         }
     }
 
     private async Task<Result<UrlResponse>> GetFromDatabaseAsync(ShortCode shortCode, CancellationToken cancellationToken)
     {
-        // Primeiro decodifica o short code para obter o ID
-        var urlMappingId = codeGenerator.Decode(shortCode.Value);
+        long urlMappingId;
+        try
+        {
+            urlMappingId = base62Encoder.Decode(shortCode.Value);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to decode short code: {ShortCode}", shortCode.Value);
+            return Result.Failure<UrlResponse>(Error.NotFound("UrlShortCode.NotFound", "URL not found"));
+        }
+
         if (urlMappingId <= 0)
         {
             logger.LogWarning("Invalid short code format: {ShortCode}", shortCode.Value);
             return Result.Failure<UrlResponse>(Error.NotFound("UrlShortCode.NotFound", "URL not found"));
         }
 
-        // Busca pelo ID (mais eficiente que buscar pelo ShortCode)
         var urlMapping = await context.UrlMappings
             .FirstOrDefaultAsync(e => e.Id == urlMappingId, cancellationToken);
 
@@ -82,13 +86,12 @@ public class GetUrlQueryHandler(
 
         logger.LogInformation("Long URL for short code: {ShortCode} found in database", shortCode.Value);
 
-        // Cache de forma assíncrona após encontrar
         _ = Task.Run(async () => await CacheUrlMappingAsync(shortCode, longUrl), cancellationToken);
 
-        return Result.Success(new UrlResponse 
-        { 
+        return Result.Success(new UrlResponse
+        {
             ShortCode = shortCode.Value,
-            LongUrl = longUrl 
+            LongUrl = longUrl
         });
     }
 
@@ -97,9 +100,7 @@ public class GetUrlQueryHandler(
         try
         {
             var cacheKey = GenerateCacheKey(shortCode);
-            var expiration = TimeSpan.FromDays(CacheExpirationDays);
-            await cacheService.SetStringAsync(cacheKey, longUrl, expiration);
-            
+            await cacheService.SetStringAsync(cacheKey, longUrl, TimeSpan.FromDays(CacheExpirationDays));
             logger.LogDebug("Cached URL mapping for short code: {ShortCode}", shortCode.Value);
         }
         catch (Exception ex)
@@ -107,6 +108,6 @@ public class GetUrlQueryHandler(
             logger.LogWarning(ex, "Failed to cache URL mapping for short code: {ShortCode}", shortCode.Value);
         }
     }
-    
+
     private static string GenerateCacheKey(ShortCode shortCode) => $"short:{shortCode.Value}";
 }

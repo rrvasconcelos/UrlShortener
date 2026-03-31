@@ -9,7 +9,8 @@ public class ShortCodeTests
     [InlineData("exmpl")] // 5
     [InlineData("AbC123")] // 6
     [InlineData("A1b2")]   // 4
-    [InlineData("AbCdE12")] // 7 (limite)
+    [InlineData("AbCdE12")] // 7
+    [InlineData("AbCdEfGh1234")] // 12 (limit)
     public void Create_ShouldCreateShortCodeInstance_WhenShortCodeIsValid(string value)
     {
         // Act
@@ -34,7 +35,7 @@ public class ShortCodeTests
     }
 
     [Theory]
-    [InlineData("abcdefgh")] // too long (>7)
+    [InlineData("abcdefghijklmn")] // too long (>12)
     [InlineData("ab_cd")] // underscore not allowed
     [InlineData("ab-cd")] // hyphen not allowed
     [InlineData("ab cd")] // space not allowed

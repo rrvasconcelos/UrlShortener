@@ -22,11 +22,26 @@ public class UrlMapping : Entity<long>
         ExpiresAt = expiresAt;
     }
 
+    private UrlMapping(long id, LongUrl longUrl, ShortCode shortCode, DateTime? expiresAt = null)
+    {
+        Id = id;
+        LongUrl = longUrl;
+        ShortCode = shortCode;
+        ExpiresAt = expiresAt;
+    }
+
     public static UrlMapping Create(LongUrl longUrl, DateTime? expiresAt = null)
     {
         return new UrlMapping(longUrl, expiresAt);
     }
 
+    public static UrlMapping Create(long id, LongUrl longUrl, ShortCode shortCode, DateTime? expiresAt = null)
+    {
+        return new UrlMapping(id, longUrl, shortCode, expiresAt);
+    }
+
     public void AddShortCode(ShortCode shortCode) => ShortCode = shortCode;
+
+    public void IncrementClickCount() => ClickCount++;
 }
 
